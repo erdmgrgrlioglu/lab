@@ -19,7 +19,7 @@ dates, values = [], []
 df = pd.DataFrame(pd.read_csv("data/data.csv")) ## historic data from FED
 df['Date'] = pd.to_datetime(df['Date'])
 
-buyMarketValue=0
+lastBuyMarketValue=0
 buyPoints = [], [] # [date], [value]
 def buy(value, index):
     global balance
@@ -27,8 +27,8 @@ def buy(value, index):
     position = balance/value # +(-0.15/value) buying operation cost
     balance = 0
     
-    global buyMarketValue
-    buyMarketValue = value
+    global lastBuyMarketValue
+    lastBuyMarketValue = value
     
     buyPoints[0].append(df.iloc[index][0])
     buyPoints[1].append(df.iloc[index][1])
@@ -54,7 +54,7 @@ strategyPoints = [], []
 def strategy(value, index):
     global lastSellindex
     if position != 0:
-        if(value-buyMarketValue)/value*100 > sellAfterPercentage: #percent
+        if(value-lastBuyMarketValue)/value*100 > sellAfterPercentage: #percent
             sell(value,index)
             lastSellindex=index
     else:
