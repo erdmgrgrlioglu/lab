@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+# settings
+balance=1000 #editable
+position=0 #editable
 start_time='2020-01-01' #editable
 end_time='2025-01-01' #editable
 animation=False #editable
@@ -10,16 +13,14 @@ animation=False #editable
 buyAfterPercentage=2 #editable
 sellAfterPercentage=2 #editable
 buyAfterIteration=20 #editable
-###
 
-balance=1000 #editable
-position=0
-
+## historic data from FED
 dates, values = [], []
-df = pd.DataFrame(pd.read_csv("data/data.csv")) ## historic data from FED
+df = pd.DataFrame(pd.read_csv("data/data.csv"))
 df['Date'] = pd.to_datetime(df['Date'])
 
 lastBuyMarketValue=0
+lastBuyindex=0
 buyPoints = [], [] # [date], [value]
 def buy(value, index):
     global balance
@@ -28,13 +29,16 @@ def buy(value, index):
     balance = 0
     
     global lastBuyMarketValue
+    global lastBuyindex
     lastBuyMarketValue = value
+    lastBuyindex = index
     
     buyPoints[0].append(df.iloc[index][0])
     buyPoints[1].append(df.iloc[index][1])
     print(f"Bought on Value: {value}, Your Position: {position}, Balance: {value*position}, Date:{df.iloc[index][0]}")
 
 lastSellMarketValue=0
+lastSellindex=0
 sellPoints = [], [] # [date], [value]
 def sell(value, index):
     global balance
@@ -43,39 +47,35 @@ def sell(value, index):
     position = 0
 
     global lastSellMarketValue
+    global lastSellindex
     lastSellMarketValue = value
+    lastSellindex=index
 
     sellPoints[0].append(df.iloc[index][0])
     sellPoints[1].append(df.iloc[index][1])
     print(f"Sold on Value: {value}, Your Position: {position}, Balance: {balance}, Date:{df.iloc[index][0]}")
-
-lastSellindex=0
+    
 strategyPoints = [], []
 def strategy(value, index):
-    global lastSellindex
     if position != 0:
         if(value-lastBuyMarketValue)/value*100 > sellAfterPercentage: #percent
             sell(value,index)
-            lastSellindex=index
     else:
         if index-lastSellindex == buyAfterIteration or (lastSellMarketValue-value)/value*100 > buyAfterPercentage: #percent
             buy(value,index)
 
 initialPoints= [],[]
 startPosition=0
-iteration=0
 def calac_at_index(index):
     marketValue = df.iloc[index][1]
     date = df.iloc[index][0].date()
 
     # iteration
-    global iteration
     global startPosition
-    if iteration == 0: 
+    if startPosition == 0: 
         startPosition = balance/marketValue
         buy(marketValue,index)
     else: strategy(marketValue,index) # strategy
-    iteration += 1
     
     # logs
     if position != 0:
@@ -84,7 +84,7 @@ def calac_at_index(index):
     else:
         print(f"Date: {date}, Value: {marketValue}, Balance: {balance}")
         strategyPoints[1].append(balance)
-    initialPoints[0].append(df.iloc[index][0]) # no strategy: never sell
+    initialPoints[0].append(df.iloc[index][0])
     initialPoints[1].append(marketValue*startPosition)
     strategyPoints[0].append(df.iloc[index][0])
     dates.append(df.iloc[index][0])

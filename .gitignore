@@ -1,7 +1,2 @@
-bin
-include
-.vscode
-lib
-lib64
-share
-pyenv.cfg
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*
