@@ -1,0 +1,110 @@
+esphome:
+  name: airmonitor
+
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "thisisatesta"
+
+ota:
+  - platform: esphome
+    password: "thisisatesta"
+
+wifi:
+  ssid: ""
+  password: ""
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Airmonitor Fallback Hotspot"
+    password: "aYhvkn4FdGQ4"
+
+captive_portal:
+    
+i2c:
+  sda: 33
+  scl: 35
+  scan: true
+  id: bus_a
+  frequency: 10kHz
+
+uart:
+  tx_pin: 5
+  rx_pin: 7
+  baud_rate: 9600
+
+sensor:
+  - platform: bmp280_i2c
+    address: 0x77
+    update_interval: 60s
+    temperature:
+      name: "BMP temp"
+      oversampling: 2x
+    pressure:
+      name: "BMP Pressure"
+
+  - platform: aht10
+    variant: AHT20
+    address: 0x38
+    update_interval: 60s
+    temperature:
+      name: "AHT20 temp"
+      id: aht20_temp
+      accuracy_decimals: 1
+      filters:
+      - filter_out: 0.0
+      - median:
+          window_size: 3
+          send_every: 3
+          send_first_at: 1
+    humidity:
+      name: "AHT20 humidity"
+      id: aht20_humidity
+      accuracy_decimals: 1
+      filters:
+      - filter_out: 0.0
+      - median:
+          window_size: 3
+          send_every: 3
+          send_first_at: 1
+
+  - platform: scd4x 
+    co2:
+      name: "Workshop CO2"
+    temperature:
+      name: "Workshop Temperature"
+    humidity:
+      name: "Workshop Humidity"
+
+  - platform: pmsx003
+    type: PMS5003s
+    pm_1_0:
+      name: "Particulate Matter <1.0µm Concentration"
+    pm_2_5:
+      name: "Particulate Matter <2.5µm Concentration"
+    pm_10_0:
+      name: "Particulate Matter <10.0µm Concentration"
+    formaldehyde:
+      name: "Formaldehyde"
+
+switch:
+  - platform: gpio
+    pin: 
+      number: 3
+    id: pms_set
+    name: "Start measuring"
+  
+interval:
+  - interval: 280s
+    then:
+      - switch.turn_on: pms_set
+      - delay: 20s
+      - switch.turn_off: pms_set
+      

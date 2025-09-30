@@ -1,2 +1,4 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-*
+.venv
+eye-track
+image-processing/input/big-earth.tif
+esphome-air/.esphome
